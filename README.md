@@ -52,3 +52,53 @@ curl --location --request PUT 'http://[your_es_host]:[your_es_port]/_snapshot/[y
     }
 }'
 ```
+
+Now we have our snapshot repo named `your_elasticsearch_repo`, this will be used for create or restore a snapshot.
+
+## Create a Snapshot
+
+```curl
+curl --location --request PUT 'http://[your_es_host]:[your_es_port]/_snapshot/[your_elasticsearch_repo]/[your_snapshot_name]' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "ignore_unavailable": true,
+    "include_global_state": false,
+    "metadata": {
+        "taken_by": "your_unique_username",
+        "taken_because": "Snapshot backup description lies here.",
+        "another_data": "Some random string"
+    }
+}'
+```
+
+## Monitor Snapshot Creation Progress
+
+### All Progresses
+
+```curl
+curl --location --request GET 'http://[your_es_host]:[your_es_port]/_snapshot/[your_elasticsearch_repo]/_current?pretty'
+```
+
+### Specific Snapshot
+
+```curl
+curl --location --request GET 'http://[your_es_host]:[your_es_port]/_snapshot/[your_elasticsearch_repo]/[your_snapshot_name]?pretty'
+```
+
+## Restore a Snapshot
+
+```curl
+curl --location --request POST 'http://[your_es_host]:[your_es_port]/_snapshot/[your_elasticsearch_repo]/[your_snapshot_name]/_restore' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "ignore_unavailable": true,
+    "include_global_state": false,
+    "include_aliases": false
+}'
+```
+
+## Monitor Snapshot Restoration Progress
+
+```curl
+curl --location --request GET 'http://[your_es_host]:[your_es_port]/_cat/recovery?v=true'
+```
