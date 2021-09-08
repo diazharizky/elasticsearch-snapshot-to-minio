@@ -31,30 +31,27 @@ services:
     entrypoint: /bin/sh -c
     command:
       - |-
-        mc alias set myminio "$$MINIO_HOST" "$$MINIO_ACCESS_KEY" "$$MINIO_SECRET_KEY"
-        mc mb myminio/elasticsearch
+        mc alias set my_minio "$$MINIO_HOST" "$$MINIO_ACCESS_KEY" "$$MINIO_SECRET_KEY"
+        mc mb my_minio/elasticsearch
 
   elasticsearch:
-    image: diazharizky/elasticsearch:7.14.0
+    image: diazharizky/elasticsearch:7.14.0-minio
     build:
       context: ../../
       dockerfile: build/docker/Dockerfile
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - discovery.type=single-node
+      - MINIO_HOST=172.19.0.2:9000
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    environment:
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - discovery.type=single-node
-      - MINIO_HOST=172.19.0.2:9000 # on dev phase, we have to use internal docker IP to make this worked, this worked as well using IP
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://elasticsearch:9200 > /dev/null 2>&1"]
       interval: 30s
       timeout: 30s
       retries: 3
-    depends_on:
-      minio:
-        condition: service_healthy
     volumes:
       - ../../config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     ports:
